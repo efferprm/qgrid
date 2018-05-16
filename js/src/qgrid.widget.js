@@ -354,7 +354,7 @@ class QgridView extends widgets.DOMWidgetView {
         continue;
       }
 
-      if ( ! (cur_column.editable) ) {
+      if (cur_column.editable == false) {
         slick_column.editor = null;
       }
 
