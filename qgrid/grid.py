@@ -810,10 +810,9 @@ class QgridWidget(widgets.DOMWidget):
                 not self._disable_grouping:
             previous_value = None
             row_styles = {}
-            row_styles_idx = 0
+            row_loc = from_index
             for index, row in df.iterrows():
                 row_style = {}
-                row_loc = self._df.index.get_loc(index)
                 last_row = row_loc == (len(self._df) - 1)
                 prev_idx = row_loc - 1
                 for idx, index_val in enumerate(index):
@@ -845,7 +844,7 @@ class QgridWidget(widgets.DOMWidget):
                                 row_styles[prev_idx][col_name] = 'group-single'
                 previous_value = index
                 row_styles[row_loc] = row_style
-                row_styles_idx += 1
+                row_loc += 1
 
             self._row_styles = row_styles
         else:
