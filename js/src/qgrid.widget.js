@@ -643,6 +643,7 @@ class QgridView extends widgets.DOMWidgetView {
       this.update_timeout = setTimeout(() => {
         var df_json = JSON.parse(this.model.get('_df_json'));
         this.row_styles = this.model.get("_row_styles");
+        this.multi_index = this.model.get("_multi_index");
         var data_view = this.create_data_view(df_json.data);
 
         if (msg.triggered_by == 'sort_changed' && this.sort_indicator){
@@ -661,7 +662,23 @@ class QgridView extends widgets.DOMWidgetView {
         }
 
         this.set_data_view(data_view);
-        this.slick_grid.setCellCssStyles("grouping", this.row_styles);
+
+        var skip_grouping = false;
+        if (this.multi_index) {
+          for (var i=1; i < this.filter_list.length; i++) {
+            var cur_filter = this.filter_list[i];
+            if (cur_filter.is_active()) {
+              skip_grouping = true;
+            }
+          }
+        }
+
+        if (skip_grouping) {
+          this.slick_grid.removeCellCssStyles("grouping");
+        } else {
+          this.slick_grid.setCellCssStyles("grouping", this.row_styles);
+        }
+
         this.slick_grid.render();
 
         if ((msg.triggered_by == 'add_row' ||

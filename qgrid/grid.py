@@ -493,7 +493,7 @@ class QgridWidget(widgets.DOMWidget):
     _unfiltered_df = Instance(pd.DataFrame)
     _index_col_name = Unicode('qgrid_unfiltered_index', sync=True)
     _sort_col_suffix = Unicode('_qgrid_sort_column')
-    _multi_index = Bool(False)
+    _multi_index = Bool(False, sync=True)
     _edited = Bool(False)
     _selected_rows = List([])
     _viewport_range = Tuple(Integer(), Integer(), default_value=(0, 100))
@@ -766,7 +766,8 @@ class QgridWidget(widgets.DOMWidget):
 
             def should_be_stringified(col_series):
                 return col_series.dtype == np.dtype('O') or \
-                       hasattr(col_series, 'cat')
+                       hasattr(col_series, 'cat') or \
+                       isinstance(col_series, pd.PeriodIndex)
 
             if type(df.index) == pd.core.index.MultiIndex:
                 self._multi_index = True
@@ -965,12 +966,9 @@ class QgridWidget(widgets.DOMWidget):
                         inplace=True
                     )
                 else:
-                    level_id = self._sort_field
-                    level_index = self._primary_key.index(level_id)
-                    if self._sort_field.startswith('level_'):
-                        level_id = int(self._sort_field[6:])
+                    level_index = self._primary_key.index(self._sort_field)
                     self._df.sort_index(
-                        level=level_id,
+                        level=level_index,
                         ascending=self._sort_ascending,
                         inplace=True
                     )
@@ -1215,11 +1213,13 @@ class QgridWidget(widgets.DOMWidget):
         if col_name in self._primary_key:
             if len(self._primary_key) > 1:
                 key_index = self._primary_key.index(col_name)
-                col_series.name = df.index.levels[key_index].name
+                prev_name = df.index.levels[key_index].name
                 df.index.set_levels(col_series, level=key_index, inplace=True)
+                df.index.rename(prev_name, level=key_index, inplace=True)
             else:
-                col_series.name = df.index.name
+                prev_name = df.index.name
                 df.set_index(col_series, inplace=True)
+                df.index.rename(prev_name)
         else:
             df[col_name] = col_series
 
