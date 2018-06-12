@@ -865,17 +865,6 @@ class QgridWidget(widgets.DOMWidget):
             parsed_json = json.loads(df_json)
             df_schema = parsed_json['schema']
 
-            if ('primaryKey' in df_schema):
-                self._primary_key = df_schema['primaryKey']
-            else:
-                # for some reason, 'primaryKey' isn't set in certain cases,
-                # like when we have an interval index. that's why this case
-                # is here.
-                if df.index.name is not None:
-                    self._primary_key = [df.index.name]
-                else:
-                    self._primary_key = ['index']
-
             columns = {}
             for i, cur_column in enumerate(df_schema['fields']):
                 col_name = cur_column['name']
@@ -896,7 +885,7 @@ class QgridWidget(widgets.DOMWidget):
                     level = self._primary_key.index(col_name)
                     if level == 0:
                         cur_column['first_index'] = True
-                    if level == (len(self._primary_key) - 1):
+                    if self._multi_index and level == (len(self._primary_key) - 1):
                         cur_column['last_index'] = True
 
                 cur_column['position'] = i
